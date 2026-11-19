@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { AppState, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSettings } from '@/features/settings/hooks';
+import { isExpoGoTestMode } from '@/runtime';
 import { useSession } from '@/stores/session';
 import { Text } from '@/ui/Text';
 import { spacing, usePalette } from '@/ui/theme';
@@ -50,7 +51,9 @@ export function LockGate({ children }: { children: ReactNode }) {
     return () => sub.remove();
   }, [enabled, settings?.autoLockSeconds, setLocked]);
 
-  if (enabled && locked) return <LockScreen biometrics={!!settings?.biometricsEnabled} onUnlock={unlock} />;
+  // Expo Go test mode: PIN only, biometrics are never offered.
+  const biometrics = !!settings?.biometricsEnabled && !isExpoGoTestMode();
+  if (enabled && locked) return <LockScreen biometrics={biometrics} onUnlock={unlock} />;
   return (
     <View style={{ flex: 1 }}>
       {children}

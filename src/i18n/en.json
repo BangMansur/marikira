@@ -1,5 +1,7 @@
 {
-  "meta": { "code": "en" },
+  "meta": {
+    "code": "en"
+  },
   "common": {
     "save": "Save",
     "saveChanges": "Save changes",
@@ -26,8 +28,29 @@
   "dates": {
     "today": "Today",
     "yesterday": "Yesterday",
-    "monthsShort": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-    "daysShort": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    "monthsShort": [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
+    ],
+    "daysShort": [
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat"
+    ]
   },
   "keypad": {
     "backspace": "Delete last digit",
@@ -106,17 +129,31 @@
     "search": "Search",
     "searchPlaceholder": "Merchant, note, category, tag",
     "filters": "Filters",
-    "filter": { "all": "All", "out": "Money out", "in": "Money in", "transfer": "Transfers" },
+    "filter": {
+      "all": "All",
+      "out": "Money out",
+      "in": "Money in",
+      "transfer": "Transfers"
+    },
     "filtered": "Filtered",
     "clearFilter": "Clear filter",
     "period": "Period",
-    "periods": { "cycle": "This cycle", "last": "Last cycle", "all": "All time" },
+    "periods": {
+      "cycle": "This cycle",
+      "last": "Last cycle",
+      "all": "All time"
+    },
     "account": "Account",
     "allAccounts": "All accounts",
     "minAmount": "Min ({{symbol}})",
     "maxAmount": "Max ({{symbol}})",
     "sort": "Sort",
-    "sorts": { "date_desc": "Newest", "date_asc": "Oldest", "amount_desc": "Biggest", "amount_asc": "Smallest" },
+    "sorts": {
+      "date_desc": "Newest",
+      "date_asc": "Oldest",
+      "amount_desc": "Biggest",
+      "amount_asc": "Smallest"
+    },
     "deleted": "Transaction deleted",
     "emptyTitle": "Nothing here yet",
     "emptyBody": "Tap + to log your first transaction.",
@@ -303,9 +340,18 @@
     },
     "methodTitle": "How do you want to budget?",
     "methods": {
-      "simple": { "title": "Simple", "body": "Just track what comes in and goes out. No budgets yet." },
-      "50_30_20": { "title": "50/30/20", "body": "50% needs, 30% wants, 20% savings. We'll set aside 20% as your savings target." },
-      "zero_based": { "title": "Zero-based", "body": "Give every ringgit a job before the month starts. Budgets arrive in the next update." }
+      "simple": {
+        "title": "Simple",
+        "body": "Just track what comes in and goes out. No budgets yet."
+      },
+      "50_30_20": {
+        "title": "50/30/20",
+        "body": "50% needs, 30% wants, 20% savings. We'll set aside 20% as your savings target."
+      },
+      "zero_based": {
+        "title": "Zero-based",
+        "body": "Give every ringgit a job before the month starts. Budgets arrive in the next update."
+      }
     },
     "finish": "Let's go!"
   },
@@ -322,7 +368,11 @@
     "appearance": "Appearance",
     "language": "Language",
     "theme": "Theme",
-    "themes": { "system": "Auto", "light": "Light", "dark": "Dark" },
+    "themes": {
+      "system": "Auto",
+      "light": "Light",
+      "dark": "Dark"
+    },
     "privacy": "Privacy & security",
     "hideBalances": "Hide balances",
     "hideBalancesHint": "Mask amounts when you're in public",
@@ -347,7 +397,12 @@
     "biometricsUnavailable": "Not set up on this device",
     "changePin": "Change PIN",
     "autoLock": "Lock again after",
-    "timeouts": { "0": "Immediately", "60": "1 minute", "300": "5 minutes", "900": "15 minutes" },
+    "timeouts": {
+      "0": "Immediately",
+      "60": "1 minute",
+      "300": "5 minutes",
+      "900": "15 minutes"
+    },
     "choosePin": "Choose a PIN",
     "confirmPin": "Enter it again",
     "pinLength": "4 to 6 digits",
@@ -389,6 +444,14 @@
       "currency_mismatch": "Both accounts must use the same currency",
       "too_long": "That's too long",
       "adjustment_readonly": "Adjustments can't be edited"
-    }
+    },
+    "noEncryption": "This build is missing database encryption, so MariKira won’t open rather than store your data unprotected. Please reinstall the app from the official store or a proper build."
+  },
+  "testMode": {
+    "banner": "Test mode: not encrypted, demo data only",
+    "title": "You are in Expo Go test mode",
+    "body": "Expo Go can’t encrypt your data, so this mode uses demo data only. Please don’t enter real financial information here. Install a development or store build for real use: it is always encrypted.",
+    "start": "Start with demo data",
+    "securityNote": "Test mode (Expo Go): data on this device is NOT encrypted and the lock is PIN-only. Use demo data only."
   }
 }

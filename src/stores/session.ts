@@ -8,11 +8,11 @@ interface SessionState {
   /** Bumped by reset() so the bootstrap re-runs (e.g. after "delete all data"). */
   epoch: number;
   ctx: Ctx | null;
-  errorKind: 'key' | 'other' | null;
+  errorKind: 'key' | 'encryption' | 'other' | null;
   /** App lock: true while the lock screen must be shown. */
   locked: boolean;
   setReady: (ctx: Ctx) => void;
-  setError: (kind: 'key' | 'other') => void;
+  setError: (kind: 'key' | 'encryption' | 'other') => void;
   setLocked: (locked: boolean) => void;
   reset: () => void;
 }

@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { destroyAppDatabase, DatabaseKeyError, openAppDatabase } from '@/db/expoDb';
+import { DatabaseKeyError, destroyAppDatabase, EncryptionUnavailableError, openAppDatabase } from '@/db/expoDb';
 import { bootstrapDatabase } from '@/db/seed/bootstrap';
 import { LockGate } from '@/features/security/LockGate';
 import { useSettings } from '@/features/settings/hooks';
@@ -15,11 +15,12 @@ import { englishCategoryName, initI18n, pickLanguage } from '@/i18n';
 import { initMonitoring } from '@/monitoring';
 import { useSession } from '@/stores/session';
 import { SnackbarHost } from '@/ui/feedback';
+import { TestModeBanner } from '@/ui/TestModeBanner';
 import { Button } from '@/ui/primitives';
 import { Text } from '@/ui/Text';
 import { spacing, useIsDark, usePalette } from '@/ui/theme';
 
-initMonitoring();
+void initMonitoring();
 initI18n(pickLanguage(getLocales().map((l) => l.languageCode)));
 
 const queryClient = new QueryClient({
@@ -31,7 +32,10 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <DatabaseGate />
+          <TestModeBanner />
+          <View style={{ flex: 1 }}>
+            <DatabaseGate />
+          </View>
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
@@ -52,7 +56,7 @@ function DatabaseGate() {
         const ctx = await bootstrapDatabase(db, englishCategoryName);
         if (!cancelled) setReady(ctx);
       } catch (e) {
-        if (!cancelled) setError(e instanceof DatabaseKeyError ? 'key' : 'other');
+        if (!cancelled) setError(e instanceof EncryptionUnavailableError ? 'encryption' : e instanceof DatabaseKeyError ? 'key' : 'other');
       }
     })();
     return () => {
@@ -74,10 +78,11 @@ function DatabaseGate() {
           {t('errors.dbTitle')}
         </Text>
         <Text tone="muted" align="center">
-          {errorKind === 'key' ? t('errors.dbKey') : t('errors.dbOther')}
+          {errorKind === 'encryption' ? t('errors.noEncryption') : errorKind === 'key' ? t('errors.dbKey') : t('errors.dbOther')}
         </Text>
         <Button label={t('common.tryAgain')} onPress={() => setAttempt((a) => a + 1)} />
-        <Button
+        {/* Erasing can't fix a build without SQLCipher, so don't offer it. */}
+        {errorKind === 'encryption' ? null : <Button
           kind="danger"
           label={t('errors.resetApp')}
           onPress={() =>
@@ -93,7 +98,7 @@ function DatabaseGate() {
               },
             ])
           }
-        />
+        />}
       </View>
     );
   }

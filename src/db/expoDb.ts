@@ -1,6 +1,7 @@
 import * as Crypto from 'expo-crypto';
 import * as SecureStore from 'expo-secure-store';
 import * as SQLite from 'expo-sqlite';
+import { getRuntimeMode, type RuntimeMode } from '@/runtime';
 import type { SqlDb, SqlParams } from './adapter';
 
 /**
@@ -72,11 +73,39 @@ async function getOrCreateKey(): Promise<string> {
 
 export class DatabaseKeyError extends Error {}
 
-export async function openAppDatabase(): Promise<SqlDb> {
+/** The native build has no SQLCipher. Opening is refused rather than storing plaintext. */
+export class EncryptionUnavailableError extends Error {}
+
+/** Expo Go test mode uses its own unencrypted file, so it never touches a real encrypted DB. */
+export const TEST_DB_NAME = 'marikira-expogo-test.db';
+
+export function databaseNameFor(mode: RuntimeMode): string {
+  return mode === 'expo-go-test' ? TEST_DB_NAME : DB_NAME;
+}
+
+/**
+ * Opens the app database for the current runtime mode.
+ * - encrypted (every dev/preview/production build): SQLCipher key, then proof that SQLCipher is
+ *   really compiled in. Plain SQLite silently ignores `PRAGMA key`, so without this check a
+ *   misconfigured build would write plaintext with no error. Fail closed.
+ * - expo-go-test (Expo Go only): plain expo-sqlite, no key, separate file.
+ */
+export async function openAppDatabase(mode: RuntimeMode = getRuntimeMode()): Promise<SqlDb> {
+  if (mode === 'expo-go-test') {
+    const db = await SQLite.openDatabaseAsync(TEST_DB_NAME);
+    await db.execAsync('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
+    return new ExpoSqlDb(db, db);
+  }
+
   const key = await getOrCreateKey();
   const db = await SQLite.openDatabaseAsync(DB_NAME);
-  // Raw 256-bit key (no KDF) — must be the first statement on the connection.
+  // Raw 256-bit key (no KDF): must be the first statement on the connection.
   await db.execAsync(`PRAGMA key = "x'${key}'";`);
+  const cipher = await db.getFirstAsync<{ cipher_version?: string | null }>('PRAGMA cipher_version');
+  if (!cipher?.cipher_version) {
+    await db.closeAsync();
+    throw new EncryptionUnavailableError('SQLCipher is not available in this build; refusing to open an unencrypted database.');
+  }
   try {
     // Fails with "file is not a database" if the key does not match the file.
     await db.getFirstAsync('SELECT count(*) AS n FROM sqlite_master');
@@ -89,7 +118,7 @@ export async function openAppDatabase(): Promise<SqlDb> {
 }
 
 /** PDPA/GDPR "delete everything": removes the DB file and its key. */
-export async function destroyAppDatabase(current?: SqlDb): Promise<void> {
+export async function destroyAppDatabase(current?: SqlDb, mode: RuntimeMode = getRuntimeMode()): Promise<void> {
   if (current instanceof ExpoSqlDb) {
     try {
       await current.close();
@@ -98,9 +127,9 @@ export async function destroyAppDatabase(current?: SqlDb): Promise<void> {
     }
   }
   try {
-    await SQLite.deleteDatabaseAsync(DB_NAME);
+    await SQLite.deleteDatabaseAsync(databaseNameFor(mode));
   } catch {
     // file may not exist yet
   }
-  await SecureStore.deleteItemAsync(KEY_NAME);
+  if (mode === 'encrypted') await SecureStore.deleteItemAsync(KEY_NAME);
 }

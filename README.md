@@ -12,14 +12,14 @@ MariKira ("let's count") is an offline-first personal finance and expense tracke
 
 ```bash
 npm install
-npm test            # 179 unit, SQL and screen tests (~6 s)
+npm test            # 204 unit, SQL and screen tests (~6 s)
 npm run typecheck
 npm run lint
 ```
 
 ### Run on a device or emulator
 
-The local database is encrypted with **SQLCipher**, which is a native build option. Because of that the app **cannot run in Expo Go**. Use a development build instead:
+The local database is encrypted with **SQLCipher**, which is a native build option. Real use needs a development or store build:
 
 ```bash
 npx expo run:android     # needs Android Studio / SDK
@@ -33,7 +33,22 @@ npx eas-cli@latest build --profile development --platform android
 npx expo start --dev-client
 ```
 
-On first launch, choose **"Just exploring? Try with demo data"** to load about 3 months of realistic Malaysian transactions. You can also load them later from **Settings → Your data**.
+### Expo Go test mode (quick look only)
+
+```bash
+npx expo start      # then scan the QR code with Expo Go (SDK 58)
+```
+
+When the app detects Expo Go (`Constants.executionEnvironment === 'storeClient'`) it switches to **test mode**:
+
+- Plain expo-sqlite in a separate file (`marikira-expogo-test.db`) with **no encryption**.
+- PIN-only app lock (no biometrics). Crash reporting is not loaded.
+- Onboarding offers **demo data only**.
+- A permanent banner on every screen: **"Test mode: not encrypted, demo data only"**.
+
+Every other environment (`bare` dev builds, `standalone` preview/production builds, or an unknown value) uses SQLCipher. The encrypted path also checks `PRAGMA cipher_version` and **refuses to open** if SQLCipher isn't compiled in, because plain SQLite silently ignores `PRAGMA key`. `src/db/__tests__/encryptionMode.test.ts` proves this, and checks that `app.config.ts` enables SQLCipher for every EAS profile.
+
+On first launch of a real build, choose **"Just exploring? Try with demo data"** to load about 3 months of realistic Malaysian transactions. You can also load them later from **Settings → Your data**.
 
 ### Builds
 
@@ -144,7 +159,8 @@ src/
 
 ## Known limitations (Phase 1)
 
-- **On-device verification:** this build was verified with typecheck, lint, 179 Jest tests (including screen tests that drive the real UI against a real SQLite DB) and a production Android Metro/Hermes bundle. It has **not yet been run on a physical device or emulator**, and the Detox E2E suite has not been executed. Both need a machine with an Android or iOS toolchain.
+- **Expo Go SDK match:** the project is on Expo SDK 58 (`expo@58.0.26`, the latest on npm) and every native dependency matches SDK 58's bundled versions. I could not confirm the exact SDK of the Expo Go app currently on the iOS App Store from the build environment. Check that Expo Go → Settings shows SDK 58 support.
+- **On-device verification:** this build was verified with typecheck, lint, 204 Jest tests (including screen tests that drive the real UI against a real SQLite DB) and a production Android Metro/Hermes bundle. It has **not yet been run on a physical device or emulator**, and the Detox E2E suite has not been executed. Both need a machine with an Android or iOS toolchain.
 - **Commitments and savings goals arrive in Phase 2.** Until then, safe-to-spend subtracts 0 commitments and only your savings target. The maths and the "no double counting" rules are already implemented and tested.
 - **One currency per user.** The schema already stores `base_amount_minor` and `fx_rate_e8`. Multi-currency is planned for Phase 5.
 - **No split editor UI yet** (Phase 2). Split data and reporting work today and are tested.

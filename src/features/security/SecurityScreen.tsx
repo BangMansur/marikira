@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Switch, View } from 'react-native';
 import { useSettings, useUpdateSettings } from '@/features/settings/hooks';
+import { isExpoGoTestMode } from '@/runtime';
 import { showSnackbar } from '@/stores/snackbar';
 import { Button, Card, Chip, Divider, ListRow, Row, Screen } from '@/ui/primitives';
 import { Text } from '@/ui/Text';
@@ -24,9 +25,10 @@ export function SecurityScreen() {
   const [message, setMessage] = useState<string | null>(null);
   const [bioAvailable, setBioAvailable] = useState(false);
 
+  const testMode = isExpoGoTestMode();
   useEffect(() => {
-    void biometricsAvailable().then(setBioAvailable);
-  }, []);
+    if (!testMode) void biometricsAvailable().then(setBioAvailable);
+  }, [testMode]);
 
   if (!s) return null;
 
@@ -93,6 +95,8 @@ export function SecurityScreen() {
         />
         {s.lockEnabled ? (
           <>
+            {testMode ? null : (
+              <>
             <Divider />
             <ListRow
               title={t('security.biometrics')}
@@ -107,6 +111,8 @@ export function SecurityScreen() {
                 />
               }
             />
+              </>
+            )}
             <Divider />
             <ListRow title={t('security.changePin')} onPress={() => setStage({ kind: 'enter' })} right={<Text tone="muted">›</Text>} />
           </>
@@ -125,7 +131,7 @@ export function SecurityScreen() {
         </Card>
       ) : null}
       <Text variant="caption" tone="muted">
-        {t('security.encryptionNote')}
+        {testMode ? t('testMode.securityNote') : t('security.encryptionNote')}
       </Text>
     </Screen>
   );

@@ -1,5 +1,7 @@
 {
-  "meta": { "code": "ms" },
+  "meta": {
+    "code": "ms"
+  },
   "common": {
     "save": "Simpan",
     "saveChanges": "Simpan perubahan",
@@ -26,8 +28,29 @@
   "dates": {
     "today": "Hari ini",
     "yesterday": "Semalam",
-    "monthsShort": ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov", "Dis"],
-    "daysShort": ["Ahd", "Isn", "Sel", "Rab", "Kha", "Jum", "Sab"]
+    "monthsShort": [
+      "Jan",
+      "Feb",
+      "Mac",
+      "Apr",
+      "Mei",
+      "Jun",
+      "Jul",
+      "Ogo",
+      "Sep",
+      "Okt",
+      "Nov",
+      "Dis"
+    ],
+    "daysShort": [
+      "Ahd",
+      "Isn",
+      "Sel",
+      "Rab",
+      "Kha",
+      "Jum",
+      "Sab"
+    ]
   },
   "keypad": {
     "backspace": "Padam digit terakhir",
@@ -105,17 +128,31 @@
     "search": "Cari",
     "searchPlaceholder": "Peniaga, nota, kategori, tag",
     "filters": "Penapis",
-    "filter": { "all": "Semua", "out": "Duit keluar", "in": "Duit masuk", "transfer": "Pindahan" },
+    "filter": {
+      "all": "Semua",
+      "out": "Duit keluar",
+      "in": "Duit masuk",
+      "transfer": "Pindahan"
+    },
     "filtered": "Ditapis",
     "clearFilter": "Buang penapis",
     "period": "Tempoh",
-    "periods": { "cycle": "Kitaran ini", "last": "Kitaran lepas", "all": "Semua masa" },
+    "periods": {
+      "cycle": "Kitaran ini",
+      "last": "Kitaran lepas",
+      "all": "Semua masa"
+    },
     "account": "Akaun",
     "allAccounts": "Semua akaun",
     "minAmount": "Min ({{symbol}})",
     "maxAmount": "Maks ({{symbol}})",
     "sort": "Susun",
-    "sorts": { "date_desc": "Terbaru", "date_asc": "Terlama", "amount_desc": "Terbesar", "amount_asc": "Terkecil" },
+    "sorts": {
+      "date_desc": "Terbaru",
+      "date_asc": "Terlama",
+      "amount_desc": "Terbesar",
+      "amount_asc": "Terkecil"
+    },
     "deleted": "Transaksi dipadam",
     "emptyTitle": "Belum ada apa-apa",
     "emptyBody": "Ketik + untuk catat transaksi pertama.",
@@ -301,9 +338,18 @@
     },
     "methodTitle": "Bagaimana anda mahu berbajet?",
     "methods": {
-      "simple": { "title": "Mudah", "body": "Catat sahaja duit masuk dan keluar. Tiada bajet lagi." },
-      "50_30_20": { "title": "50/30/20", "body": "50% keperluan, 30% kehendak, 20% simpanan. Kami tetapkan 20% sebagai sasaran simpanan." },
-      "zero_based": { "title": "Berasaskan sifar", "body": "Beri setiap ringgit tugasan sebelum bulan bermula. Bajet tiba dalam kemas kini seterusnya." }
+      "simple": {
+        "title": "Mudah",
+        "body": "Catat sahaja duit masuk dan keluar. Tiada bajet lagi."
+      },
+      "50_30_20": {
+        "title": "50/30/20",
+        "body": "50% keperluan, 30% kehendak, 20% simpanan. Kami tetapkan 20% sebagai sasaran simpanan."
+      },
+      "zero_based": {
+        "title": "Berasaskan sifar",
+        "body": "Beri setiap ringgit tugasan sebelum bulan bermula. Bajet tiba dalam kemas kini seterusnya."
+      }
     },
     "finish": "Jom mula!"
   },
@@ -320,7 +366,11 @@
     "appearance": "Paparan",
     "language": "Bahasa",
     "theme": "Tema",
-    "themes": { "system": "Auto", "light": "Cerah", "dark": "Gelap" },
+    "themes": {
+      "system": "Auto",
+      "light": "Cerah",
+      "dark": "Gelap"
+    },
     "privacy": "Privasi & keselamatan",
     "hideBalances": "Sembunyikan baki",
     "hideBalancesHint": "Tutup jumlah semasa di tempat awam",
@@ -345,7 +395,12 @@
     "biometricsUnavailable": "Belum ditetapkan pada peranti ini",
     "changePin": "Tukar PIN",
     "autoLock": "Kunci semula selepas",
-    "timeouts": { "0": "Serta-merta", "60": "1 minit", "300": "5 minit", "900": "15 minit" },
+    "timeouts": {
+      "0": "Serta-merta",
+      "60": "1 minit",
+      "300": "5 minit",
+      "900": "15 minit"
+    },
     "choosePin": "Pilih PIN",
     "confirmPin": "Masukkan sekali lagi",
     "pinLength": "4 hingga 6 digit",
@@ -386,6 +441,14 @@
       "currency_mismatch": "Kedua-dua akaun mesti guna mata wang yang sama",
       "too_long": "Terlalu panjang",
       "adjustment_readonly": "Pelarasan tidak boleh diubah"
-    }
+    },
+    "noEncryption": "Binaan ini tiada penyulitan pangkalan data, jadi MariKira tidak akan dibuka supaya data anda tidak disimpan tanpa perlindungan. Sila pasang semula aplikasi daripada kedai rasmi atau binaan yang betul."
+  },
+  "testMode": {
+    "banner": "Mod ujian: tidak disulitkan, data demo sahaja",
+    "title": "Anda dalam mod ujian Expo Go",
+    "body": "Expo Go tidak dapat menyulitkan data anda, jadi mod ini menggunakan data demo sahaja. Jangan masukkan maklumat kewangan sebenar di sini. Pasang binaan pembangunan atau binaan kedai untuk kegunaan sebenar: ia sentiasa disulitkan.",
+    "start": "Mula dengan data demo",
+    "securityNote": "Mod ujian (Expo Go): data dalam peranti ini TIDAK disulitkan dan kunci hanya menggunakan PIN. Guna data demo sahaja."
   }
 }

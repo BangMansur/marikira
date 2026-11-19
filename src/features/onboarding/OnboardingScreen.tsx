@@ -12,6 +12,7 @@ import { resetDefaultCategories } from '@/features/categories/categories.repo';
 import { type BudgetMethod, type Language, type PresetId, setSettings } from '@/features/settings/settings.repo';
 import { englishCategoryName, initI18n } from '@/i18n';
 import { getPreset, type AccountSuggestion } from '@/presets';
+import { isExpoGoTestMode } from '@/runtime';
 import { useCtx } from '@/stores/session';
 import { Button, Card, Chip, Row, Segmented, TextField } from '@/ui/primitives';
 import { Text } from '@/ui/Text';
@@ -93,6 +94,22 @@ export function OnboardingScreen() {
   };
 
   const next = () => (step < STEPS - 1 ? setStep(step + 1) : void finish(false));
+
+  // Expo Go test mode: storage isn't encrypted, so real setup is not offered. Demo data only.
+  if (isExpoGoTestMode()) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: p.bg }} edges={['bottom']} testID="onboarding-test-mode">
+        <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
+          <Text variant="display">{t('onboarding.welcomeTitle')}</Text>
+          <Card>
+            <Text variant="heading">{t('testMode.title')}</Text>
+            <Text tone="muted">{t('testMode.body')}</Text>
+          </Card>
+          <Button label={t('testMode.start')} onPress={() => void finish(true)} loading={busy} testID="onboarding-demo" />
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: p.bg }} testID="onboarding">

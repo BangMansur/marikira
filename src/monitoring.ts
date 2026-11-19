@@ -1,10 +1,12 @@
-import * as Sentry from '@sentry/react-native';
+import { isExpoGoTestMode } from './runtime';
 
 /**
  * Crash reporting with no financial data:
  * - Disabled unless EXPO_PUBLIC_SENTRY_DSN is set at build time.
  * - No PII, no breadcrumbs of console/UI text, no request bodies.
  * - Any number that looks like money or an amount is redacted before sending.
+ * - Never loaded in Expo Go: the Sentry native module isn't bundled there, so the
+ *   package is imported lazily and only in real builds.
  */
 const DSN = process.env.EXPO_PUBLIC_SENTRY_DSN;
 
@@ -14,8 +16,9 @@ export function scrub(text: string): string {
   return text.replace(MONEY, '[redacted]');
 }
 
-export function initMonitoring(): void {
-  if (!DSN) return;
+export async function initMonitoring(): Promise<void> {
+  if (!DSN || isExpoGoTestMode()) return;
+  const Sentry = await import('@sentry/react-native');
   Sentry.init({
     dsn: DSN,
     sendDefaultPii: false,

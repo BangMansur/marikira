@@ -9,6 +9,7 @@ import { getCurrency, parseAmount, toDecimalString } from '@/core/money';
 import { destroyAppDatabase } from '@/db/expoDb';
 import { loadDemoData } from '@/db/seed/demo';
 import { clearPin } from '@/features/security/pinStore';
+import { isExpoGoTestMode } from '@/runtime';
 import { useCtx, useSession } from '@/stores/session';
 import { showSnackbar } from '@/stores/snackbar';
 import { Button, Card, Chip, Divider, ListRow, Row, Screen, SectionHeader, TextField } from '@/ui/primitives';
@@ -120,7 +121,7 @@ export function SettingsScreen() {
         <ListRow title={t('categories.title')} onPress={() => router.push('/categories')} right={<Text tone="muted">›</Text>} />
       </Card>
       <Text variant="caption" tone="muted">
-        {t('settings.privacyStatement')}
+        {isExpoGoTestMode() ? t('testMode.securityNote') : t('settings.privacyStatement')}
       </Text>
 
       <SectionHeader title={t('settings.data')} />
