@@ -16,3 +16,11 @@ android/
 coverage/
 artifacts/
 expo-env.d.ts
+
+# Keys, certificates and credentials
+*.pem
+*.keystore
+credentials.json
+google-services.json
+GoogleService-Info.plist
+.claude/settings.local.json
