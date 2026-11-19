@@ -45,6 +45,7 @@ When the app detects Expo Go (`Constants.executionEnvironment === 'storeClient'`
 - PIN-only app lock (no biometrics). Crash reporting is not loaded.
 - Onboarding offers **demo data only**.
 - A permanent banner on every screen: **"Test mode: not encrypted, demo data only"**.
+- If the database can't be opened, the error screen shows the error message, native error code and stack trace as selectable text, and `console.error`s it to Metro. This happens **only in Expo Go test mode with `__DEV__`**. Dev, preview and production builds show the plain message and log nothing.
 
 Every other environment (`bare` dev builds, `standalone` preview/production builds, or an unknown value) uses SQLCipher. The encrypted path also checks `PRAGMA cipher_version` and **refuses to open** if SQLCipher isn't compiled in, because plain SQLite silently ignores `PRAGMA key`. `src/db/__tests__/encryptionMode.test.ts` proves this, and checks that `app.config.ts` enables SQLCipher for every EAS profile.
 

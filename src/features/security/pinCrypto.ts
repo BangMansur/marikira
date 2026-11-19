@@ -1,5 +1,6 @@
 import { pbkdf2Async } from '@noble/hashes/pbkdf2.js';
 import { sha256 } from '@noble/hashes/sha2.js';
+import { utf8ToBytes } from '@noble/hashes/utils.js';
 
 /**
  * PIN hashing: PBKDF2-HMAC-SHA256 with a random 16-byte salt. The record lives in the
@@ -27,7 +28,7 @@ export function isValidPin(pin: string): boolean {
 
 export async function hashPin(pin: string, salt: Uint8Array, iterations = PIN_ITERATIONS): Promise<PinRecord> {
   if (!isValidPin(pin)) throw new Error('Invalid PIN format');
-  const dk = await pbkdf2Async(sha256, new TextEncoder().encode(pin), salt, { c: iterations, dkLen: 32, asyncTick: 10 });
+  const dk = await pbkdf2Async(sha256, utf8ToBytes(pin) /* no TextEncoder dependency on Hermes */, salt, { c: iterations, dkLen: 32, asyncTick: 10 });
   return { v: 1, salt: hex(salt), hash: hex(dk), iterations };
 }
 

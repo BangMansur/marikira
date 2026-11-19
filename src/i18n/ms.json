@@ -449,6 +449,9 @@
     "title": "Anda dalam mod ujian Expo Go",
     "body": "Expo Go tidak dapat menyulitkan data anda, jadi mod ini menggunakan data demo sahaja. Jangan masukkan maklumat kewangan sebenar di sini. Pasang binaan pembangunan atau binaan kedai untuk kegunaan sebenar: ia sentiasa disulitkan.",
     "start": "Mula dengan data demo",
-    "securityNote": "Mod ujian (Expo Go): data dalam peranti ini TIDAK disulitkan dan kunci hanya menggunakan PIN. Guna data demo sahaja."
+    "securityNote": "Mod ujian (Expo Go): data dalam peranti ini TIDAK disulitkan dan kunci hanya menggunakan PIN. Guna data demo sahaja.",
+    "diagnosticsTitle": "Butiran pembangun (mod ujian sahaja)",
+    "errorCode": "Kod ralat",
+    "noStack": "Tiada surih tindanan"
   }
 }

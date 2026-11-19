@@ -5,14 +5,25 @@
  */
 type RandomFn = (bytes: Uint8Array) => Uint8Array;
 
-let randomFill: RandomFn = (bytes) => {
+/**
+ * Default: the Web Crypto global. React Native (Hermes) and Expo do NOT provide one, so the app
+ * must call setRandomSource() at startup. openAppDatabase() does this via installNativeRandomSource().
+ */
+const globalCryptoSource: RandomFn = (bytes) => {
   const c = (globalThis as { crypto?: { getRandomValues?: (b: Uint8Array) => Uint8Array } }).crypto;
   if (c?.getRandomValues) return c.getRandomValues(bytes);
   throw new Error('No secure random source configured; call setRandomSource()');
 };
 
+let randomFill: RandomFn = globalCryptoSource;
+
 export function setRandomSource(fn: RandomFn): void {
   randomFill = fn;
+}
+
+/** Restore the default (global crypto) source. Tests use it to reproduce a runtime without `crypto`. */
+export function resetRandomSource(): void {
+  randomFill = globalCryptoSource;
 }
 
 export function uuidv7(now: number = Date.now()): string {

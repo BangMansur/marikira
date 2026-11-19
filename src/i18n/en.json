@@ -452,6 +452,9 @@
     "title": "You are in Expo Go test mode",
     "body": "Expo Go can’t encrypt your data, so this mode uses demo data only. Please don’t enter real financial information here. Install a development or store build for real use: it is always encrypted.",
     "start": "Start with demo data",
-    "securityNote": "Test mode (Expo Go): data on this device is NOT encrypted and the lock is PIN-only. Use demo data only."
+    "securityNote": "Test mode (Expo Go): data on this device is NOT encrypted and the lock is PIN-only. Use demo data only.",
+    "diagnosticsTitle": "Developer details (test mode only)",
+    "errorCode": "Error code",
+    "noStack": "No stack trace available"
   }
 }

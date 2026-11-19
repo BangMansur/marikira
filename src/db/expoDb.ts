@@ -3,6 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import * as SQLite from 'expo-sqlite';
 import { getRuntimeMode, type RuntimeMode } from '@/runtime';
 import type { SqlDb, SqlParams } from './adapter';
+import { installNativeRandomSource } from './nativeRandom';
 
 /**
  * On-device database: expo-sqlite compiled with SQLCipher (see app.config.ts plugin
@@ -91,6 +92,8 @@ export function databaseNameFor(mode: RuntimeMode): string {
  * - expo-go-test (Expo Go only): plain expo-sqlite, no key, separate file.
  */
 export async function openAppDatabase(mode: RuntimeMode = getRuntimeMode()): Promise<SqlDb> {
+  // Bootstrap inserts rows (uuidv7 ids) immediately, so the random source must exist first.
+  installNativeRandomSource();
   if (mode === 'expo-go-test') {
     const db = await SQLite.openDatabaseAsync(TEST_DB_NAME);
     await db.execAsync('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');

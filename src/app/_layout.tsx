@@ -4,21 +4,21 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { DatabaseKeyError, destroyAppDatabase, EncryptionUnavailableError, openAppDatabase } from '@/db/expoDb';
 import { bootstrapDatabase } from '@/db/seed/bootstrap';
 import { LockGate } from '@/features/security/LockGate';
+import { DbErrorScreen } from '@/features/startup/DbErrorScreen';
+import { reportStartupError } from '@/diagnostics';
 import { useSettings } from '@/features/settings/hooks';
 import { englishCategoryName, initI18n, pickLanguage } from '@/i18n';
 import { initMonitoring } from '@/monitoring';
 import { useSession } from '@/stores/session';
 import { SnackbarHost } from '@/ui/feedback';
 import { TestModeBanner } from '@/ui/TestModeBanner';
-import { Button } from '@/ui/primitives';
-import { Text } from '@/ui/Text';
-import { spacing, useIsDark, usePalette } from '@/ui/theme';
+import { useIsDark, usePalette } from '@/ui/theme';
 
 void initMonitoring();
 initI18n(pickLanguage(getLocales().map((l) => l.languageCode)));
@@ -43,10 +43,9 @@ export default function RootLayout() {
 }
 
 function DatabaseGate() {
-  const { status, errorKind, epoch, setReady, setError, reset } = useSession();
+  const { status, errorKind, error, epoch, setReady, setError, reset } = useSession();
   const [attempt, setAttempt] = useState(0);
   const p = usePalette();
-  const { t } = useTranslation();
 
   useEffect(() => {
     let cancelled = false;
@@ -56,7 +55,8 @@ function DatabaseGate() {
         const ctx = await bootstrapDatabase(db, englishCategoryName);
         if (!cancelled) setReady(ctx);
       } catch (e) {
-        if (!cancelled) setError(e instanceof EncryptionUnavailableError ? 'encryption' : e instanceof DatabaseKeyError ? 'key' : 'other');
+        reportStartupError(e); // Expo Go test mode + __DEV__ only; a no-op everywhere else
+        if (!cancelled) setError(e instanceof EncryptionUnavailableError ? 'encryption' : e instanceof DatabaseKeyError ? 'key' : 'other', e);
       }
     })();
     return () => {
@@ -73,33 +73,15 @@ function DatabaseGate() {
   }
   if (status === 'error') {
     return (
-      <View style={{ flex: 1, backgroundColor: p.bg, alignItems: 'center', justifyContent: 'center', padding: spacing.xl, gap: spacing.lg }}>
-        <Text variant="title" align="center">
-          {t('errors.dbTitle')}
-        </Text>
-        <Text tone="muted" align="center">
-          {errorKind === 'encryption' ? t('errors.noEncryption') : errorKind === 'key' ? t('errors.dbKey') : t('errors.dbOther')}
-        </Text>
-        <Button label={t('common.tryAgain')} onPress={() => setAttempt((a) => a + 1)} />
-        {/* Erasing can't fix a build without SQLCipher, so don't offer it. */}
-        {errorKind === 'encryption' ? null : <Button
-          kind="danger"
-          label={t('errors.resetApp')}
-          onPress={() =>
-            Alert.alert(t('errors.resetApp'), t('errors.resetConfirm'), [
-              { text: t('common.cancel'), style: 'cancel' },
-              {
-                text: t('errors.resetApp'),
-                style: 'destructive',
-                onPress: async () => {
-                  await destroyAppDatabase();
-                  reset();
-                },
-              },
-            ])
-          }
-        />}
-      </View>
+      <DbErrorScreen
+        kind={errorKind ?? 'other'}
+        error={error}
+        onRetry={() => setAttempt((a) => a + 1)}
+        onReset={async () => {
+          await destroyAppDatabase();
+          reset();
+        }}
+      />
     );
   }
   return <AppShell />;
