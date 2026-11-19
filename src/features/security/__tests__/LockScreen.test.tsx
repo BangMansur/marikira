@@ -11,7 +11,7 @@ jest.mock('../pinStore', () => ({
   authenticateBiometric: jest.fn(async () => false),
 }));
 
-const render = (ui: ReactElement) => rtlRender(<QueryClientProvider client={new QueryClient()}>{ui}</QueryClientProvider>);
+const render = (ui: ReactElement) => rtlRender(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { gcTime: Infinity }, mutations: { gcTime: Infinity } } })}>{ui}</QueryClientProvider>);
 
 const mocked = pinStore as jest.Mocked<typeof pinStore>;
 
