@@ -1,4 +1,5 @@
-import { listCategories, removeCategory, setCategoryHidden, createCategory } from '@/features/categories/categories.repo';
+import { createCategory, listCategories, removeCategory, resetDefaultCategories, setCategoryHidden } from '@/features/categories/categories.repo';
+import { GENERIC_PRESET } from '@/presets';
 import { cleanTags, normalizeMerchant, rankCategorySuggestions, validateTransactionInput } from '@/features/transactions/rules';
 import { findMerchantCategory, lastUsedAccountId, listTransactions, searchMerchants, suggestCategories } from '@/features/transactions/transactions.repo';
 import { setup } from './fixtures';
@@ -133,5 +134,18 @@ describe('categories', () => {
     expect(await removeCategory(ctx, used)).toBe('hidden');
     await setCategoryHidden(ctx, used, false);
     expect((await listCategories(ctx)).some((c) => c.id === used)).toBe(true);
+  });
+});
+
+describe('preset switching', () => {
+  it('re-seeds categories for another preset only while there is no history', async () => {
+    const { ctx, add } = await setup();
+    expect(await resetDefaultCategories(ctx, GENERIC_PRESET.categories, (k) => k)).toBe(true);
+    const keys = (await listCategories(ctx)).map((c) => c.nameKey);
+    expect(keys).not.toContain('ptptn');
+    expect(keys).toContain('food');
+    const food = (await listCategories(ctx)).find((c) => c.nameKey === 'food')!.id;
+    await add({ type: 'expense', amount: 100, categoryId: food });
+    expect(await resetDefaultCategories(ctx, GENERIC_PRESET.categories, (k) => k)).toBe(false);
   });
 });

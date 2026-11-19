@@ -197,3 +197,23 @@ export async function removeCategory(ctx: Ctx, id: string): Promise<'deleted' | 
     return 'deleted';
   });
 }
+
+/**
+ * Switch the default category set to another locale preset (used during onboarding).
+ * Only allowed before any transaction exists, so no history can lose its category.
+ */
+export async function resetDefaultCategories(
+  ctx: Ctx,
+  seeds: CategorySeed[],
+  englishName: (key: string) => string,
+): Promise<boolean> {
+  return ctx.db.transaction(async (db) => {
+    const used = await db.get<{ n: number }>('SELECT count(*) AS n FROM transactions WHERE user_id = ?', [ctx.userId]);
+    if ((used?.n ?? 0) > 0) return false;
+    await db.run('DELETE FROM merchants WHERE user_id = ?', [ctx.userId]);
+    await db.run('DELETE FROM categories WHERE user_id = ? AND parent_id IS NOT NULL', [ctx.userId]);
+    await db.run('DELETE FROM categories WHERE user_id = ?', [ctx.userId]);
+    await seedDefaultCategories({ db, userId: ctx.userId }, seeds, englishName);
+    return true;
+  });
+}
