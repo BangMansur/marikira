@@ -14,7 +14,7 @@ MariKira ("let's count") is an offline-first personal finance and expense tracke
 
 ```bash
 npm install
-npm test            # 239 unit, SQL, screen and Phase 1 validation tests
+npm test            # 245 unit, SQL, screen and Phase 1 validation tests
 npm run typecheck
 npm run lint
 ```
@@ -53,7 +53,21 @@ Every other environment (`bare` dev builds, `standalone` preview/production buil
 
 On first launch of a real build, choose **"Just exploring? Try with demo data"** to load about 3 months of realistic Malaysian transactions. You can also load them later from **Settings → Your data**.
 
-### Builds
+### Preview in Expo Go with EAS Update
+
+The project is linked to EAS (`owner: bangmansur`, project `80c1111d-0672-4a86-bef5-c09186a466aa`) and serves updates from `https://u.expo.dev/80c1111d-0672-4a86-bef5-c09186a466aa`.
+
+```bash
+npx eas-cli@latest update --channel preview --message "What changed"
+```
+
+Open the update from the project page on expo.dev (or scan its QR code) in **Expo Go for SDK 58**. It runs in test mode: unencrypted, demo data only, permanent banner.
+
+- **Runtime version:** `{ policy: "sdkVersion" }` → `exposdk:58.0.0`. That's the runtime Expo Go accepts, so every update published from this project can be opened in Expo Go.
+- **Channel:** the `preview` build profile in `eas.json` publishes to the `preview` channel.
+- **Before OTA-updating real (SQLCipher) builds:** switch to `{ policy: "fingerprint" }` so an update can never reach a build with different native code. Expo Go previews then need a separate publish with the `sdkVersion` policy.
+
+
 
 | Profile | Command | Output |
 |---|---|---|
@@ -195,7 +209,7 @@ src/
 ## Known limitations (Phase 1)
 
 - **Expo Go SDK match:** the project is on Expo SDK 58 (`expo@58.0.26`, the latest on npm) and every native dependency matches SDK 58's bundled versions. I could not confirm the exact SDK of the Expo Go app currently on the iOS App Store from the build environment. Check that Expo Go → Settings shows SDK 58 support.
-- **On-device verification:** this build was verified with typecheck, lint, 239 Jest tests (including the full-app Phase 1 validation suite on a real SQLite DB) and production Android and iOS Metro/Hermes bundles. The Maestro flows have not been run yet: they need the EAS project linked (`eas init`) and the GitHub integration connected.
+- **On-device verification:** this build was verified with typecheck, lint, 245 Jest tests (including the full-app Phase 1 validation suite on a real SQLite DB) and production Android and iOS Metro/Hermes bundles. The Maestro flows have not been run yet: they need the EAS project linked (`eas init`) and the GitHub integration connected.
 - **Commitments and savings goals arrive in Phase 2.** Until then, safe-to-spend subtracts 0 commitments and only your savings target. The maths and the "no double counting" rules are already implemented and tested.
 - **One currency per user.** The schema already stores `base_amount_minor` and `fx_rate_e8`. Multi-currency is planned for Phase 5.
 - **No split editor UI yet** (Phase 2). Split data and reporting work today and are tested.

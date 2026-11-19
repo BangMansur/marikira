@@ -8,10 +8,14 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
  *   survive a cloud restore, so a restored DB file would be unreadable anyway.
  *   Encrypted backup/restore is a later-phase feature.
  */
+/** EAS project (expo.dev/@bangmansur/marikira). */
+export const EAS_PROJECT_ID = '80c1111d-0672-4a86-bef5-c09186a466aa';
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'MariKira',
   slug: 'marikira',
+  owner: 'bangmansur',
   scheme: 'marikira',
   version: '0.1.0',
   orientation: 'portrait',
@@ -34,6 +38,18 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     predictiveBackGestureEnabled: false,
   },
   web: { favicon: './assets/favicon.png' },
+  // EAS Update. "sdkVersion" → runtime "exposdk:58.0.0", the runtime Expo Go accepts, so
+  // `eas update --channel preview` can be opened in Expo Go (test mode: unencrypted, demo data).
+  // Before shipping OTA updates to real (SQLCipher) builds, switch to { policy: 'fingerprint' }
+  // so an update can never land on a build with different native code.
+  runtimeVersion: { policy: 'sdkVersion' },
+  updates: {
+    url: `https://u.expo.dev/${EAS_PROJECT_ID}`,
+  },
+  extra: {
+    ...config.extra,
+    eas: { projectId: EAS_PROJECT_ID },
+  },
   plugins: [
     'expo-router',
     ['expo-sqlite', { useSQLCipher: true }],
