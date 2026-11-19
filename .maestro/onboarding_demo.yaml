@@ -1,0 +1,37 @@
+# Onboarding with demo data lands on a populated Home, Plan and Reports.
+appId: app.marikira
+tags:
+  - phase1
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "onboarding"
+    timeout: 30000
+- assertVisible: "Selamat datang to MariKira!"
+- tapOn:
+    id: "onboarding-demo"
+- extendedWaitUntil:
+    visible:
+      id: "home"
+    timeout: 30000
+- assertVisible: "Safe to spend today"
+- assertVisible:
+    id: "money-in"
+- assertVisible:
+    id: "money-out"
+- assertVisible: "Where it went"
+- tapOn:
+    id: "tab-plan"
+- assertVisible:
+    id: "net-worth"
+- assertVisible: "Maybank Savings"
+- assertVisible: "Visa Card"
+- tapOn:
+    id: "tab-reports"
+- assertVisible: "Spending by category"
+- tapOn:
+    id: "tab-home"
+- assertNotVisible:
+    id: "test-mode-banner"

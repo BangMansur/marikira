@@ -105,7 +105,7 @@ export function TransactionDetailScreen() {
         </Text>
       )}
       {tx.type === 'expense' && tx.refundedAmount < tx.amount ? (
-        <Button kind="secondary" label={t('detail.recordRefund')} onPress={() => router.push({ pathname: '/add-transaction', params: { refundOf: tx.id } })} />
+        <Button kind="secondary" label={t('detail.recordRefund')} testID="detail-refund" onPress={() => router.push({ pathname: '/add-transaction', params: { refundOf: tx.id } })} />
       ) : null}
       <Button kind="danger" label={t('common.delete')} onPress={() => void onDelete()} testID="detail-delete" />
     </Screen>

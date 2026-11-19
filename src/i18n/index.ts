@@ -27,6 +27,9 @@ export function initI18n(language: LanguageCode): typeof i18n {
       lng: language,
       fallbackLng: 'en',
       interpolation: { escapeValue: false },
+      // Resources are bundled, so initialise synchronously: the first render (and plural rules)
+      // must never see raw keys.
+      initAsync: false,
       returnNull: false,
     });
   } else if (i18n.language !== language) {

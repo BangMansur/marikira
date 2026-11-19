@@ -114,3 +114,28 @@ export function formatBps(bps: number, decimals: 0 | 1 = 1): string {
   const f = a % 10n;
   return `${neg ? '-' : ''}${w}${f === 0n ? '' : '.' + f}%`;
 }
+
+/**
+ * Split `total` units across items in proportion to `values` so the parts sum to EXACTLY `total`
+ * (largest-remainder / Hamilton method, exact BigInt arithmetic). Used for percentages that must
+ * add up to 100%, e.g. apportion([1, 1, 1], 100) → [34, 33, 33].
+ * Ties on the remainder go to the larger value, then to the earlier item. All-zero input → all zeros.
+ */
+export function apportion(values: readonly number[], total: number): number[] {
+  for (const v of values) assertSafeInt(v, 'value');
+  if (values.some((v) => v < 0)) throw new RangeError('apportion needs non-negative values');
+  const sum = values.reduce((s, v) => s + BigInt(v), 0n);
+  if (sum === 0n || values.length === 0) return values.map(() => 0);
+  const T = BigInt(total);
+  const base = values.map((v) => (BigInt(v) * T) / sum);
+  const rem = values.map((v, i) => ({ i, r: (BigInt(v) * T) % sum, v }));
+  let left = Number(T - base.reduce((s, b) => s + b, 0n));
+  rem.sort((a, b) => (a.r === b.r ? (a.v === b.v ? a.i - b.i : b.v - a.v) : a.r > b.r ? -1 : 1));
+  const out = base.map(Number);
+  for (const { i } of rem) {
+    if (left <= 0) break;
+    out[i] += 1;
+    left--;
+  }
+  return out;
+}

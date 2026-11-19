@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { getLocales } from 'expo-localization';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -15,6 +15,7 @@ import { reportStartupError } from '@/diagnostics';
 import { useSettings } from '@/features/settings/hooks';
 import { englishCategoryName, initI18n, pickLanguage } from '@/i18n';
 import { initMonitoring } from '@/monitoring';
+import { queryClient } from '@/stores/queryClient';
 import { useSession } from '@/stores/session';
 import { SnackbarHost } from '@/ui/feedback';
 import { TestModeBanner } from '@/ui/TestModeBanner';
@@ -23,9 +24,6 @@ import { useIsDark, usePalette } from '@/ui/theme';
 void initMonitoring();
 initI18n(pickLanguage(getLocales().map((l) => l.languageCode)));
 
-const queryClient = new QueryClient({
-  defaultOptions: { queries: { staleTime: 30_000, retry: 1, networkMode: 'always' }, mutations: { networkMode: 'always' } },
-});
 
 export default function RootLayout() {
   return (

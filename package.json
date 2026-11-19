@@ -39,7 +39,6 @@
     "@types/node": "^26.6.6",
     "@types/react": "~19.3.0",
     "better-sqlite3": "^13.2.0",
-    "detox": "^20.51.4",
     "eslint": "^9.39.5",
     "eslint-config-expo": "^58.0.4",
     "jest": "^30.5.2",
@@ -56,11 +55,11 @@
     "test": "jest",
     "test:unit": "jest --selectProjects unit",
     "test:ui": "jest --selectProjects ui",
-    "e2e:build:android": "detox build -c android.emu.release",
-    "e2e:test:android": "detox test -c android.emu.release",
-    "e2e:build:ios": "detox build -c ios.sim.release",
-    "e2e:test:ios": "detox test -c ios.sim.release",
-    "doctor": "expo-doctor"
+    "doctor": "expo-doctor",
+    "e2e:build:android": "npx eas-cli@latest build --profile e2e-test --platform android",
+    "e2e:build:ios": "npx eas-cli@latest build --profile e2e-test --platform ios",
+    "e2e:maestro": "maestro test .maestro/",
+    "e2e:workflow": "npx eas-cli@latest workflow:run .eas/workflows/e2e-tests.yml"
   },
   "private": true
 }

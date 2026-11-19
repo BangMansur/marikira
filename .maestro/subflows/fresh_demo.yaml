@@ -1,0 +1,16 @@
+# Fresh install state → "Try with demo data" → Home with ~3 months of transactions.
+appId: app.marikira
+---
+- launchApp:
+    clearState: true
+- runScript: ../scripts/money.js
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-demo"
+    timeout: 30000
+- tapOn:
+    id: "onboarding-demo"
+- extendedWaitUntil:
+    visible:
+      id: "money-out"
+    timeout: 30000

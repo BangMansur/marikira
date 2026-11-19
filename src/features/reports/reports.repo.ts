@@ -1,7 +1,7 @@
 import type { Ctx } from '@/db/helpers';
 import { addDays, getPayCycle, type LocalDate, type PayCycle, shiftPayCycle } from '@/core/dates';
 import { changeBps, safeToSpend, type SafeToSpendResult, savingsRateBps } from '@/core/finance';
-import { type Minor, ratioBps } from '@/core/money';
+import { apportion, type Minor } from '@/core/money';
 import type { AppSettings } from '@/features/settings/settings.repo';
 
 /**
@@ -58,12 +58,14 @@ export interface CategoryTotal {
   color: string;
   bucket: string | null;
   total: Minor;
-  /** Share of total spending in basis points. */
+  /** Share of total spending in basis points; all categories sum to exactly 10,000. */
   shareBps: number;
+  /** Whole-percent share for display; all categories sum to exactly 100. */
+  sharePct: number;
 }
 
 export async function spendingByCategory({ db, userId }: Ctx, from: LocalDate, to: LocalDate): Promise<CategoryTotal[]> {
-  const rows = await db.all<Omit<CategoryTotal, 'shareBps'>>(
+  const rows = await db.all<Omit<CategoryTotal, 'shareBps' | 'sharePct'>>(
     `WITH lines AS (${SPEND_LINES})
      SELECT COALESCE(p.id, c.id) AS categoryId,
             COALESCE(p.name, c.name) AS name, COALESCE(p.name_key, c.name_key) AS nameKey,
@@ -78,8 +80,11 @@ export async function spendingByCategory({ db, userId }: Ctx, from: LocalDate, t
       ORDER BY total DESC`,
     [userId, from, to],
   );
-  const all = rows.reduce((s, r) => s + r.total, 0);
-  return rows.map((r) => ({ ...r, shareBps: ratioBps(r.total, all) ?? 0 }));
+  // Largest-remainder rounding so the shown percentages always add up to exactly 100%.
+  const totals = rows.map((r) => r.total);
+  const bps = apportion(totals, 10_000);
+  const pct = apportion(totals, 100);
+  return rows.map((r, i) => ({ ...r, shareBps: bps[i], sharePct: pct[i] }));
 }
 
 export interface DailyTotal {

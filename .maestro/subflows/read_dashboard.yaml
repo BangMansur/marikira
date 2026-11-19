@@ -1,0 +1,15 @@
+# Reads Home's Money IN / OUT into output.<prefix>In / output.<prefix>Out (sen). Needs env PREFIX.
+appId: app.marikira
+---
+- tapOn:
+    id: "tab-home"
+- extendedWaitUntil:
+    visible:
+      id: "money-out"
+    timeout: 10000
+- copyTextFrom:
+    id: "money-in"
+- evalScript: ${output[PREFIX + 'In'] = output.sen(maestro.copiedText)}
+- copyTextFrom:
+    id: "money-out"
+- evalScript: ${output[PREFIX + 'Out'] = output.sen(maestro.copiedText)}

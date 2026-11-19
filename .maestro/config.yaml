@@ -1,0 +1,5 @@
+# Maestro workspace config: run the top-level flows; subflows/ are only used via runFlow.
+flows:
+  - "*.yaml"
+executionOrder:
+  continueOnFailure: true

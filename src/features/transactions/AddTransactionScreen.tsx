@@ -12,6 +12,7 @@ import { useAccounts } from '@/features/accounts/hooks';
 import { useCategories, useCategoryLabel } from '@/features/categories/hooks';
 import { useSettingsValue } from '@/features/settings/hooks';
 import { showSnackbar } from '@/stores/snackbar';
+import { useMoney } from '@/ui/Amount';
 import { useDateLabels } from '@/ui/dates';
 import { SkeletonCard } from '@/ui/feedback';
 import { Keypad } from '@/ui/Keypad';
@@ -78,6 +79,8 @@ function TransactionForm({
   const exponent = getCurrency(currency).exponent;
   const { short } = useDateLabels();
   const { data: accounts = [] } = useAccounts();
+  // The confirmation toast respects "Hide balances" (the amount field itself stays visible while typing).
+  const { format: formatMasked } = useMoney();
 
   const src = editing;
   const [type, setType] = useState<EntryType>(src ? (src.type === 'adjustment' ? 'expense' : src.type) : initialType);
@@ -160,7 +163,7 @@ function TransactionForm({
       if (editingId) await update.mutateAsync({ id: editingId, input });
       else await create.mutateAsync(input);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
-      showSnackbar({ text: editingId ? t('add.updated') : t('add.saved', { amount: formatMoney(amount, currency) }) });
+      showSnackbar({ text: editingId ? t('add.updated') : t('add.saved', { amount: formatMasked(amount) }) });
       router.back();
     } catch (e) {
       setError(e instanceof ValidationError ? t(`errors.validation.${e.code}`, { defaultValue: t('errors.generic') }) : t('errors.generic'));

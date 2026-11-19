@@ -1,0 +1,57 @@
+# RM500 Maybank Savings → Cash: Money IN/OUT unchanged; balances move by exactly RM500 each way.
+appId: app.marikira
+tags:
+  - phase1
+---
+- runFlow: subflows/fresh_demo.yaml
+- tapOn:
+    id: "tab-plan"
+- extendedWaitUntil:
+    visible:
+      id: "account-balance-Maybank Savings"
+    timeout: 10000
+- copyTextFrom:
+    id: "account-balance-Maybank Savings"
+- evalScript: ${output.bankBefore = output.sen(maestro.copiedText)}
+- copyTextFrom:
+    id: "account-balance-Cash"
+- evalScript: ${output.cashBefore = output.sen(maestro.copiedText)}
+- runFlow:
+    file: subflows/read_dashboard.yaml
+    env:
+      PREFIX: before
+- tapOn:
+    id: "fab-add"
+- extendedWaitUntil:
+    visible:
+      id: "type-transfer"
+    timeout: 10000
+- tapOn:
+    id: "type-transfer"
+- tapOn:
+    id: "key-5"
+- tapOn:
+    id: "key-0"
+- tapOn:
+    id: "key-0"
+# From: first account (Maybank Savings). To: first other account (Cash).
+- tapOn:
+    id: "account-0"
+- tapOn:
+    id: "to-account-0"
+- tapOn:
+    id: "save-transaction"
+- runFlow:
+    file: subflows/read_dashboard.yaml
+    env:
+      PREFIX: after
+- assertTrue: ${output.afterOut === output.beforeOut}
+- assertTrue: ${output.afterIn === output.beforeIn}
+- tapOn:
+    id: "tab-plan"
+- copyTextFrom:
+    id: "account-balance-Maybank Savings"
+- assertTrue: ${output.sen(maestro.copiedText) - output.bankBefore === -50000}
+- copyTextFrom:
+    id: "account-balance-Cash"
+- assertTrue: ${output.sen(maestro.copiedText) - output.cashBefore === 50000}

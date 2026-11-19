@@ -207,7 +207,7 @@ function TopCategories({ d }: { d: Dashboard }) {
             key={c.categoryId}
             onPress={() => drill({ categoryId: c.categoryId, from: d.cycle.start, to: d.cycle.end, title: label(c) })}
             accessibilityRole="button"
-            accessibilityLabel={`${label(c)}, ${formatBps(c.shareBps, 0)}`}
+            accessibilityLabel={`${label(c)}, ${`${c.sharePct}%`}`}
             style={{ gap: spacing.xs, paddingVertical: spacing.xs }}
           >
             <Row>
@@ -215,8 +215,8 @@ function TopCategories({ d }: { d: Dashboard }) {
               <Text style={{ flex: 1 }} numberOfLines={1}>
                 {label(c)}
               </Text>
-              <Text variant="caption" tone="muted">
-                {formatBps(c.shareBps, 0)}
+              <Text variant="caption" tone="muted" testID={`home-pct-${c.nameKey ?? c.categoryId}`}>
+                {`${c.sharePct}%`}
               </Text>
               <Amount value={c.total} variant="bodyStrong" />
             </Row>

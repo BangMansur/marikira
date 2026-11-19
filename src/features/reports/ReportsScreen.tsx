@@ -86,14 +86,14 @@ export function ReportsScreen() {
                 <Text variant="caption" tone="muted">
                   {t('home.moneyIn')}
                 </Text>
-                <Amount value={r.flow.moneyIn} kind="income" variant="heading" onPress={() => router.push({ pathname: '/(tabs)/transactions', params: { type: 'income', from: r.cycle.start, to: r.cycle.end, title: t('home.moneyIn') } })} />
+                <Amount value={r.flow.moneyIn} kind="income" variant="heading" testID="report-money-in" onPress={() => router.push({ pathname: '/(tabs)/transactions', params: { type: 'income', from: r.cycle.start, to: r.cycle.end, title: t('home.moneyIn') } })} />
                 {change(r.moneyInChangeBps, true)}
               </View>
               <View style={{ alignItems: 'flex-end' }}>
                 <Text variant="caption" tone="muted">
                   {t('home.moneyOut')}
                 </Text>
-                <Amount value={r.flow.moneyOut} variant="heading" onPress={() => router.push({ pathname: '/(tabs)/transactions', params: { type: 'expense', from: r.cycle.start, to: r.cycle.end, title: t('home.moneyOut') } })} />
+                <Amount value={r.flow.moneyOut} variant="heading" testID="report-money-out" onPress={() => router.push({ pathname: '/(tabs)/transactions', params: { type: 'expense', from: r.cycle.start, to: r.cycle.end, title: t('home.moneyOut') } })} />
                 {change(r.moneyOutChangeBps, false)}
               </View>
             </Row>
@@ -121,7 +121,7 @@ export function ReportsScreen() {
                     accessibilityLabel={t('reports.donutA11y', {
                       list: r.categories
                         .slice(0, MAX_SLICES)
-                        .map((c) => `${label(c)} ${formatBps(c.shareBps, 0)}`)
+                        .map((c) => `${label(c)} ${`${c.sharePct}%`}`)
                         .join(', '),
                     })}
                   />
@@ -131,18 +131,19 @@ export function ReportsScreen() {
                     key={c.categoryId}
                     onPress={() => router.push({ pathname: '/(tabs)/transactions', params: { categoryId: c.categoryId, from: r.cycle.start, to: r.cycle.end, title: label(c) } })}
                     accessibilityRole="button"
-                    accessibilityLabel={`${label(c)}, ${format(c.total)}, ${formatBps(c.shareBps, 0)}`}
+                    accessibilityLabel={`${label(c)}, ${format(c.total)}, ${c.sharePct}%`}
                     style={{ paddingVertical: spacing.xs }}
+                    testID={`report-cat-${c.nameKey ?? c.categoryId}`}
                   >
                     <Row>
                       <View style={{ width: 12, height: 12, borderRadius: 3, backgroundColor: CHART_COLORS[Math.min(i, 7)] }} />
                       <Text style={{ flex: 1 }} numberOfLines={1}>
                         {c.icon} {label(c)}
                       </Text>
-                      <Text variant="caption" tone="muted">
-                        {formatBps(c.shareBps, 0)}
+                      <Text variant="caption" tone="muted" testID={`report-pct-${c.nameKey ?? c.categoryId}`}>
+                        {`${c.sharePct}%`}
                       </Text>
-                      <Amount value={c.total} variant="bodyStrong" />
+                      <Amount value={c.total} variant="bodyStrong" testID={`report-amt-${c.nameKey ?? c.categoryId}`} />
                     </Row>
                     {c.changeBps != null && Math.abs(c.changeBps) >= 1000 ? (
                       <Text variant="caption" tone="muted" style={{ marginLeft: 20 }}>

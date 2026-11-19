@@ -1,4 +1,5 @@
 import {
+  apportion,
   convertMinor,
   divCeil,
   divRound,
@@ -144,5 +145,36 @@ describe('FX conversion', () => {
     expect(convertMinor(1000, 'JPY', 'MYR', 3_010_000)).toBe(3010);
     // RM1.00 at 33.2 → ¥33
     expect(convertMinor(100, 'MYR', 'JPY', 3_320_000_000)).toBe(33);
+  });
+});
+
+describe('apportion (largest remainder): shares always sum exactly', () => {
+  const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
+  it.each([
+    [[1, 1, 1], 100, [34, 33, 33]],
+    [[2, 1], 100, [67, 33]],
+    [[1, 1, 1, 1, 1, 1], 100, [17, 17, 17, 17, 16, 16]],
+    [[999, 1], 100, [100, 0]],
+    [[5], 100, [100]],
+    [[0, 0], 100, [0, 0]],
+    [[], 100, []],
+  ])('%p into %d → %p', (values, total, expected) => {
+    expect(apportion(values, total)).toEqual(expected);
+  });
+
+  it('sums to the total for many random splits (100% and 10,000 bps)', () => {
+    let seed = 7;
+    const rnd = () => (seed = (seed * 48271) % 2147483647);
+    for (let k = 0; k < 500; k++) {
+      const values = Array.from({ length: 1 + (rnd() % 12) }, () => rnd() % 1_000_000);
+      if (sum(values) === 0) continue;
+      expect(sum(apportion(values, 100))).toBe(100);
+      expect(sum(apportion(values, 10_000))).toBe(10_000);
+    }
+  });
+
+  it('rejects negative and fractional input', () => {
+    expect(() => apportion([1, -1], 100)).toThrow(RangeError);
+    expect(() => apportion([1.5], 100)).toThrow(TypeError);
   });
 });

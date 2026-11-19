@@ -52,7 +52,7 @@ export function PlanScreen() {
                     : t(`accounts.types.${a.type}`)
                 }
                 left={<IconBubble icon={a.icon ?? '🏦'} />}
-                right={<Amount value={a.balance} variant="bodyStrong" tone={a.balance < 0 ? 'caution' : 'default'} />}
+                right={<Amount value={a.balance} variant="bodyStrong" tone={a.balance < 0 ? 'caution' : 'default'} testID={`account-balance-${a.name}`} />}
                 onPress={() => router.push({ pathname: '/accounts/[id]', params: { id: a.id } })}
                 testID={`account-row-${a.name}`}
               />

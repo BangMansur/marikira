@@ -1,0 +1,64 @@
+# Delete updates totals immediately; Undo restores the transaction and the totals.
+appId: app.marikira
+tags:
+  - phase1
+---
+- runFlow: subflows/fresh_demo.yaml
+- runFlow:
+    file: subflows/read_dashboard.yaml
+    env:
+      PREFIX: base
+# Add RM12.34 Transport (a category the demo data never uses, so its row is unique).
+- tapOn:
+    id: "fab-add"
+- extendedWaitUntil:
+    visible:
+      id: "key-1"
+    timeout: 10000
+- tapOn:
+    id: "key-1"
+- tapOn:
+    id: "key-2"
+- tapOn:
+    id: "key-dot"
+- tapOn:
+    id: "key-3"
+- tapOn:
+    id: "key-4"
+- tapOn:
+    id: "cat-transport"
+- tapOn:
+    id: "save-transaction"
+- runFlow:
+    file: subflows/read_dashboard.yaml
+    env:
+      PREFIX: added
+- assertTrue: ${output.addedOut - output.baseOut === 1234}
+# Delete it from its detail screen, then Undo from the snackbar.
+- tapOn:
+    id: "tab-transactions"
+- tapOn: "Transport"
+- tapOn:
+    id: "detail-delete"
+- assertNotVisible: "Transport"
+- tapOn:
+    id: "snackbar-action"
+- extendedWaitUntil:
+    visible: "Transport"
+    timeout: 5000
+- runFlow:
+    file: subflows/read_dashboard.yaml
+    env:
+      PREFIX: undone
+- assertTrue: ${output.undoneOut === output.addedOut}
+# Delete again without undo: totals drop back to the baseline immediately.
+- tapOn:
+    id: "tab-transactions"
+- tapOn: "Transport"
+- tapOn:
+    id: "detail-delete"
+- runFlow:
+    file: subflows/read_dashboard.yaml
+    env:
+      PREFIX: deleted
+- assertTrue: ${output.deletedOut === output.baseOut}

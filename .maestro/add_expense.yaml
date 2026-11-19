@@ -1,0 +1,47 @@
+# Quick add with the calculator: 12.50+8 → RM20.50 → Food → Save. Money OUT rises by exactly 20.50.
+appId: app.marikira
+tags:
+  - phase1
+---
+- runFlow: subflows/fresh_demo.yaml
+- runFlow:
+    file: subflows/read_dashboard.yaml
+    env:
+      PREFIX: before
+- tapOn:
+    id: "fab-add"
+- extendedWaitUntil:
+    visible:
+      id: "key-1"
+    timeout: 10000
+- tapOn:
+    id: "key-1"
+- tapOn:
+    id: "key-2"
+- tapOn:
+    id: "key-dot"
+- tapOn:
+    id: "key-5"
+- tapOn:
+    id: "key-0"
+- tapOn:
+    id: "key-\\+"
+- tapOn:
+    id: "key-8"
+- assertVisible:
+    id: "amount-expression"
+    text: "12.50\\+8"
+- assertVisible:
+    id: "amount-display"
+    text: "RM20.50"
+- tapOn:
+    id: "cat-food"
+- tapOn:
+    id: "save-transaction"
+- assertVisible: "Saved RM20.50 ✓"
+- runFlow:
+    file: subflows/read_dashboard.yaml
+    env:
+      PREFIX: after
+- assertTrue: ${output.afterOut - output.beforeOut === 2050}
+- assertTrue: ${output.afterIn === output.beforeIn}
