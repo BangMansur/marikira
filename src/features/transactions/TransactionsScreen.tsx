@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, SectionList, View } from 'react-native';
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
@@ -32,40 +32,38 @@ const TYPE_MAP: Record<TypeFilter, TxType[] | undefined> = {
   transfer: ['transfer'],
 };
 
+type DrillParams = { type?: string; from?: string; to?: string; categoryId?: string; accountId?: string; title?: string };
+
+/** Drill-down params (from tapping a number elsewhere) remount the list with those filters. */
 export function TransactionsScreen() {
+  const params = useLocalSearchParams<DrillParams>();
+  const key = [params.type, params.from, params.to, params.categoryId, params.accountId].join('|');
+  return <TransactionsView key={key} params={params} />;
+}
+
+function TransactionsView({ params }: { params: DrillParams }) {
   const { t } = useTranslation();
   const p = usePalette();
-  const params = useLocalSearchParams<{ type?: string; from?: string; to?: string; categoryId?: string; accountId?: string; title?: string }>();
   const payDay = useSettingsValue('payDay');
   const currency = useSettingsValue('currency');
   const { relative } = useDateLabels();
   const today = todayLocal();
   const { data: accounts = [] } = useAccounts({ includeArchived: true });
 
+  const hasRange = !!(params.from || params.to);
   const [text, setText] = useState('');
-  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
-  const [period, setPeriod] = useState<Period>('all');
-  const [custom, setCustom] = useState<{ from?: string; to?: string }>({});
-  const [categoryId, setCategoryId] = useState<string | undefined>();
-  const [accountId, setAccountId] = useState<string | undefined>();
-  const [drillTitle, setDrillTitle] = useState<string | undefined>();
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>(
+    params.type === 'income' ? 'in' : params.type === 'expense' ? 'out' : params.type === 'transfer' ? 'transfer' : 'all',
+  );
+  const [period, setPeriod] = useState<Period>(hasRange ? 'custom' : 'all');
+  const [custom, setCustom] = useState<{ from?: string; to?: string }>(hasRange ? { from: params.from, to: params.to } : {});
+  const [categoryId, setCategoryId] = useState<string | undefined>(params.categoryId);
+  const [accountId, setAccountId] = useState<string | undefined>(params.accountId);
+  const [drillTitle, setDrillTitle] = useState<string | undefined>(params.title);
   const [sort, setSort] = useState<SortOrder>('date_desc');
   const [minText, setMinText] = useState('');
   const [maxText, setMaxText] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-
-  // Drill-down params (from tapping a number elsewhere) replace the current filters.
-  useEffect(() => {
-    if (!params.type && !params.from && !params.categoryId && !params.accountId) return;
-    setTypeFilter(params.type === 'income' ? 'in' : params.type === 'expense' ? 'out' : params.type === 'transfer' ? 'transfer' : 'all');
-    if (params.from || params.to) {
-      setPeriod('custom');
-      setCustom({ from: params.from, to: params.to });
-    }
-    setCategoryId(params.categoryId);
-    setAccountId(params.accountId);
-    setDrillTitle(params.title);
-  }, [params.type, params.from, params.to, params.categoryId, params.accountId, params.title]);
 
   const filter: Omit<TransactionFilter, 'limit' | 'offset'> = useMemo(() => {
     const cycle = getPayCycle(today, payDay);

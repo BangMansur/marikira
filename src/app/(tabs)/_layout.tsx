@@ -10,9 +10,10 @@ type IconName = keyof typeof Ionicons.glyphMap;
 export default function TabsLayout() {
   const p = usePalette();
   const { t } = useTranslation();
-  const icon =
-    (name: IconName) =>
-    ({ color, size }: { color: unknown; size: number }) => <Ionicons name={name} color={color as string} size={size} />;
+  const icon = (name: IconName) =>
+    function TabIcon({ color, size }: { color: unknown; size: number }) {
+      return <Ionicons name={name} color={color as string} size={size} />;
+    };
 
   return (
     <Tabs

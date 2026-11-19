@@ -1,7 +1,9 @@
-import i18n from 'i18next';
+import { createInstance } from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import en from './en.json';
 import ms from './ms.json';
+
+const i18n = createInstance();
 
 export const resources = { en: { translation: en }, ms: { translation: ms } } as const;
 export type LanguageCode = keyof typeof resources;

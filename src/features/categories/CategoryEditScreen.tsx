@@ -1,11 +1,13 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import type { Bucket } from '@/presets';
 import { Button, Chip, Row, Screen, TextField } from '@/ui/primitives';
 import { Text } from '@/ui/Text';
 import { radius, spacing, usePalette } from '@/ui/theme';
+import { SkeletonCard } from '@/ui/feedback';
+import type { Category } from './categories.repo';
 import { useCategories, useCategoryLabel, useCreateCategory, useUpdateCategory } from './hooks';
 
 const ICONS = ['🍜', '☕', '🛒', '🚌', '⛽', '🅿️', '💡', '📶', '🏠', '🏦', '🛡️', '💊', '🎓', '🛍️', '🎬', '🔁', '👨‍👩‍👧', '🤲', '💇', '✈️', '🌱', '📦', '🐈', '🎮', '⚽', '🎁', '💼', '🛠️', '📈', '💰', '🧒', '🕌', '🍰', '🧺', '🚗', '🏍️'];
@@ -13,28 +15,24 @@ const COLORS = ['#E07A5F', '#81B29A', '#3D85C6', '#F2A541', '#6D597A', '#F4D35E'
 const BUCKETS: Bucket[] = ['need', 'want', 'savings_debt'];
 
 export function CategoryEditScreen() {
-  const { id, kind: kindParam } = useLocalSearchParams<{ id?: string; kind?: 'expense' | 'income' }>();
+  const { id, kind } = useLocalSearchParams<{ id?: string; kind?: 'expense' | 'income' }>();
+  const { data: all, isLoading } = useCategories({ includeHidden: true });
+  if (isLoading || !all) return <Screen edges={['bottom']}><SkeletonCard /></Screen>;
+  return <CategoryForm existing={all.find((c) => c.id === id) ?? null} kindParam={kind} />;
+}
+
+function CategoryForm({ existing, kindParam }: { existing: Category | null; kindParam?: 'expense' | 'income' }) {
   const { t } = useTranslation();
   const p = usePalette();
   const label = useCategoryLabel();
-  const { data: all = [] } = useCategories({ includeHidden: true });
-  const existing = all.find((c) => c.id === id);
   const create = useCreateCategory();
   const update = useUpdateCategory();
 
   const kind = existing?.kind ?? kindParam ?? 'expense';
-  const [name, setName] = useState('');
-  const [icon, setIcon] = useState(ICONS[0]);
-  const [color, setColor] = useState(COLORS[0]);
-  const [bucket, setBucket] = useState<Bucket>('want');
-
-  useEffect(() => {
-    if (!existing) return;
-    setName(label(existing));
-    setIcon(existing.icon);
-    setColor(existing.color);
-    if (existing.bucket) setBucket(existing.bucket);
-  }, [existing, label]);
+  const [name, setName] = useState(existing ? label(existing) : '');
+  const [icon, setIcon] = useState(existing?.icon ?? ICONS[0]);
+  const [color, setColor] = useState(existing?.color ?? COLORS[0]);
+  const [bucket, setBucket] = useState<Bucket>(existing?.bucket ?? 'want');
 
   const save = async () => {
     const input = { name, kind, icon, color, bucket: kind === 'expense' ? bucket : null };

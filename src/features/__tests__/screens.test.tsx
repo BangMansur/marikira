@@ -11,6 +11,7 @@ import { createTransaction, listTransactions } from '@/features/transactions/tra
 import { makeCtx, renderWithApp } from '@/test/renderApp';
 import { resetRouter, routerCalls, setParams } from '@/test/mockRouter';
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- jest.mock factories must use require
 jest.mock('expo-router', () => require('@/test/mockRouter').routerMock);
 jest.mock('@expo/vector-icons', () => ({ Ionicons: Object.assign(() => null, { glyphMap: {} }) }));
 

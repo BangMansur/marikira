@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Animated, Pressable, StyleSheet, View, type DimensionValue } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSnackbar } from '@/stores/snackbar';
@@ -34,7 +34,7 @@ export function SnackbarHost() {
   const p = usePalette();
   const insets = useSafeAreaInsets();
   const { current, dismiss } = useSnackbar();
-  const opacity = useRef(new Animated.Value(0)).current;
+  const [opacity] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     if (!current) return;

@@ -13,6 +13,7 @@ import { useCategories, useCategoryLabel } from '@/features/categories/hooks';
 import { useSettingsValue } from '@/features/settings/hooks';
 import { showSnackbar } from '@/stores/snackbar';
 import { useDateLabels } from '@/ui/dates';
+import { SkeletonCard } from '@/ui/feedback';
 import { Keypad } from '@/ui/Keypad';
 import { Button, Chip, Row, Segmented, TextField } from '@/ui/primitives';
 import { Text } from '@/ui/Text';
@@ -27,6 +28,7 @@ import {
   useUpdateTransaction,
 } from './hooks';
 import type { EntryType, TransactionInput } from './rules';
+import type { TransactionDetail } from './transactions.repo';
 
 const PAYMENT_METHODS = ['cash', 'card', 'duitnow', 'ewallet', 'online_banking'] as const;
 
@@ -35,68 +37,69 @@ const PAYMENT_METHODS = ['cash', 'card', 'duitnow', 'ewallet', 'online_banking']
  * under "More details". Also handles editing (?id=) and refunds (?refundOf=).
  */
 export function AddTransactionScreen() {
+  const params = useLocalSearchParams<{ id?: string; refundOf?: string; type?: EntryType }>();
+  const editingQ = useTransaction(params.id);
+  const refundQ = useTransaction(params.refundOf);
+  const accountsQ = useAccounts();
+  const lastQ = useLastAccountId();
+  // Wait for everything the form's initial values depend on, then mount it once.
+  if (editingQ.isLoading || refundQ.isLoading || accountsQ.isLoading || lastQ.isLoading) {
+    return (
+      <View style={{ padding: spacing.lg }}>
+        <SkeletonCard lines={4} />
+      </View>
+    );
+  }
+  return (
+    <TransactionForm
+      editing={editingQ.data ?? null}
+      refundOf={refundQ.data ?? null}
+      initialType={params.refundOf ? 'refund' : (params.type ?? 'expense')}
+      defaultAccountId={lastQ.data ?? null}
+    />
+  );
+}
+
+function TransactionForm({
+  editing,
+  refundOf,
+  initialType,
+  defaultAccountId,
+}: {
+  editing: TransactionDetail | null;
+  refundOf: TransactionDetail | null;
+  initialType: EntryType;
+  defaultAccountId: string | null;
+}) {
   const { t } = useTranslation();
   const p = usePalette();
-  const params = useLocalSearchParams<{ id?: string; refundOf?: string; type?: EntryType }>();
-  const editingId = params.id;
+  const editingId = editing?.id;
   const currency = useSettingsValue('currency');
   const exponent = getCurrency(currency).exponent;
   const { short } = useDateLabels();
-
-  const { data: editing } = useTransaction(editingId);
-  const { data: refundOf } = useTransaction(params.refundOf);
   const { data: accounts = [] } = useAccounts();
-  const { data: lastAccountId } = useLastAccountId();
 
-  const [type, setType] = useState<EntryType>(params.refundOf ? 'refund' : (params.type ?? 'expense'));
-  const [expr, setExpr] = useState('');
-  const [categoryId, setCategoryId] = useState<string | null>(null);
-  const [accountId, setAccountId] = useState<string | null>(null);
-  const [toAccountId, setToAccountId] = useState<string | null>(null);
-  const [date, setDate] = useState(todayLocal());
-  const [merchant, setMerchant] = useState('');
-  const [note, setNote] = useState('');
-  const [tagsText, setTagsText] = useState('');
-  const [method, setMethod] = useState<string | null>(null);
-  const [showMore, setShowMore] = useState(false);
+  const src = editing;
+  const [type, setType] = useState<EntryType>(src ? (src.type === 'adjustment' ? 'expense' : src.type) : initialType);
+  const [expr, setExpr] = useState(() =>
+    src ? toDecimalString(src.amount, currency) : refundOf ? toDecimalString(refundOf.amount - refundOf.refundedAmount, currency) : '',
+  );
+  const [categoryId, setCategoryId] = useState<string | null>(src?.categoryId ?? null);
+  const [pickedAccountId, setAccountId] = useState<string | null>(src?.accountId ?? refundOf?.accountId ?? null);
+  const [toAccountId, setToAccountId] = useState<string | null>(src?.toAccountId ?? null);
+  const [date, setDate] = useState(src?.localDate ?? todayLocal());
+  const [merchant, setMerchant] = useState(src?.merchantName ?? refundOf?.merchantName ?? '');
+  const [note, setNote] = useState(src?.note ?? '');
+  const [tagsText, setTagsText] = useState(src?.tags.join(', ') ?? '');
+  const [method, setMethod] = useState<string | null>(src?.paymentMethod ?? null);
+  const [showMore, setShowMore] = useState(!!(src && (src.note || src.tags.length || src.paymentMethod)));
   const [showAllCats, setShowAllCats] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const userPickedCategory = useRef(false);
-  const prefilled = useRef(false);
+  const userPickedCategory = useRef(!!src);
 
-  // Prefill for edit / refund.
-  useEffect(() => {
-    if (prefilled.current) return;
-    const src = editing ?? null;
-    if (src) {
-      prefilled.current = true;
-      setType(src.type === 'adjustment' ? 'expense' : src.type);
-      setExpr(toDecimalString(src.amount, currency));
-      setCategoryId(src.categoryId);
-      userPickedCategory.current = true;
-      setAccountId(src.accountId);
-      setToAccountId(src.toAccountId);
-      setDate(src.localDate);
-      setMerchant(src.merchantName ?? '');
-      setNote(src.note ?? '');
-      setTagsText(src.tags.join(', '));
-      setMethod(src.paymentMethod);
-      setShowMore(!!(src.note || src.tags.length || src.paymentMethod));
-    } else if (refundOf) {
-      prefilled.current = true;
-      setExpr(toDecimalString(refundOf.amount - refundOf.refundedAmount, currency));
-      setAccountId(refundOf.accountId);
-      setMerchant(refundOf.merchantName ?? '');
-    }
-  }, [editing, refundOf, currency]);
-
-  // Smart default account: last used, else first.
-  useEffect(() => {
-    if (!accountId && accounts.length) {
-      const last = accounts.find((a) => a.id === lastAccountId);
-      setAccountId(last?.id ?? accounts[0].id);
-    }
-  }, [accounts, lastAccountId, accountId]);
+  // Smart default account: the one picked, else last used, else the first.
+  const accountId =
+    pickedAccountId ?? accounts.find((a) => a.id === defaultAccountId)?.id ?? accounts[0]?.id ?? null;
 
   const catKind = type === 'income' ? 'income' : 'expense';
   const { data: allCats = [] } = useCategories({ kind: catKind });
@@ -145,7 +148,7 @@ export function AddTransactionScreen() {
       accountId,
       toAccountId: type === 'transfer' ? toAccountId : null,
       categoryId: needsCategory ? categoryId : null,
-      refundOfId: type === 'refund' ? (params.refundOf ?? editing?.refundOfId ?? null) : null,
+      refundOfId: type === 'refund' ? (refundOf?.id ?? editing?.refundOfId ?? null) : null,
       localDate: date,
       occurredAt: editing && editing.localDate === date ? editing.occurredAt : localDateTimeToEpochMs(date, now),
       merchantName: type === 'transfer' ? null : merchant.trim() || null,

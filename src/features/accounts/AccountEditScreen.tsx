@@ -1,41 +1,44 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getCurrency, parseAmount, toDecimalString } from '@/core/money';
 import { ValidationError } from '@/db/helpers';
 import { useSettingsValue } from '@/features/settings/hooks';
 import { Button, Chip, Row, Screen, TextField } from '@/ui/primitives';
 import { Text } from '@/ui/Text';
-import { ACCOUNT_TYPES, type AccountType } from './accounts.repo';
+import { SkeletonCard } from '@/ui/feedback';
+import { ACCOUNT_TYPES, type AccountType, type AccountWithBalance } from './accounts.repo';
 import { useAccount, useCreateAccount, useUpdateAccount } from './hooks';
 
 const ICONS: Record<AccountType, string> = { cash: '💵', bank: '🏦', ewallet: '📱', credit_card: '💳', investment: '📈', loan: '🧾' };
 
 export function AccountEditScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
+  const { data: existing, isLoading } = useAccount(id);
+  if (isLoading) {
+    return (
+      <Screen edges={['bottom']}>
+        <SkeletonCard />
+      </Screen>
+    );
+  }
+  return <AccountForm id={id} existing={existing ?? null} />;
+}
+
+function AccountForm({ id, existing }: { id?: string; existing: AccountWithBalance | null }) {
   const { t } = useTranslation();
   const currency = useSettingsValue('currency');
   const symbol = getCurrency(currency).symbol;
-  const { data: existing } = useAccount(id);
   const create = useCreateAccount();
   const update = useUpdateAccount();
 
-  const [name, setName] = useState('');
-  const [type, setType] = useState<AccountType>('bank');
+  const [name, setName] = useState(existing?.name ?? '');
+  const [type, setType] = useState<AccountType>(existing?.type ?? 'bank');
   const [opening, setOpening] = useState('');
-  const [limit, setLimit] = useState('');
-  const [statementDay, setStatementDay] = useState('');
-  const [dueDay, setDueDay] = useState('');
+  const [limit, setLimit] = useState(existing?.creditLimit != null ? toDecimalString(existing.creditLimit, currency) : '');
+  const [statementDay, setStatementDay] = useState(existing?.statementDay ? String(existing.statementDay) : '');
+  const [dueDay, setDueDay] = useState(existing?.dueDay ? String(existing.dueDay) : '');
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!existing) return;
-    setName(existing.name);
-    setType(existing.type);
-    setLimit(existing.creditLimit != null ? toDecimalString(existing.creditLimit, currency) : '');
-    setStatementDay(existing.statementDay ? String(existing.statementDay) : '');
-    setDueDay(existing.dueDay ? String(existing.dueDay) : '');
-  }, [existing, currency]);
 
   const isLiability = type === 'credit_card' || type === 'loan';
   const openingMinor = opening ? parseAmount(opening, currency) : 0;

@@ -23,6 +23,8 @@ export function LockGate({ children }: { children: ReactNode }) {
   const backgroundedAt = useRef<number | null>(null);
   const [inBackground, setInBackground] = useState(false);
   const enabled = !!settings?.lockEnabled;
+  // Stable identity: LockScreen's effects (PIN lookup, biometric prompt) must run once, not every render.
+  const unlock = useCallback(() => setLocked(false), [setLocked]);
 
   // Lock on cold start once settings are known.
   const initial = useRef(true);
@@ -48,7 +50,7 @@ export function LockGate({ children }: { children: ReactNode }) {
     return () => sub.remove();
   }, [enabled, settings?.autoLockSeconds, setLocked]);
 
-  if (enabled && locked) return <LockScreen biometrics={!!settings?.biometricsEnabled} onUnlock={() => setLocked(false)} />;
+  if (enabled && locked) return <LockScreen biometrics={!!settings?.biometricsEnabled} onUnlock={unlock} />;
   return (
     <View style={{ flex: 1 }}>
       {children}

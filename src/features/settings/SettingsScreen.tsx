@@ -15,7 +15,7 @@ import { Button, Card, Chip, Divider, ListRow, Row, Screen, SectionHeader, TextF
 import { Text } from '@/ui/Text';
 import { usePalette } from '@/ui/theme';
 import { useSettings, useUpdateSettings } from './hooks';
-import type { BudgetMethod, ThemePref } from './settings.repo';
+import type { AppSettings, BudgetMethod, ThemePref } from './settings.repo';
 
 const PAY_DAYS = [1, 15, 23, 25, 28, 31];
 
@@ -26,30 +26,13 @@ export function SettingsScreen() {
   const qc = useQueryClient();
   const { data: s } = useSettings();
   const update = useUpdateSettings();
-  const [income, setIncome] = useState('');
-  const [savings, setSavings] = useState('');
   const [hasTx, setHasTx] = useState(true);
-
-  useEffect(() => {
-    if (!s) return;
-    setIncome(s.monthlyIncomeMinor ? toDecimalString(s.monthlyIncomeMinor, s.currency) : '');
-    setSavings(s.savingsTargetMinor ? toDecimalString(s.savingsTargetMinor, s.currency) : '');
-  }, [s?.monthlyIncomeMinor, s?.savingsTargetMinor, s?.currency]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     void ctx.db.get<{ n: number }>('SELECT count(*) AS n FROM transactions WHERE deleted_at IS NULL').then((r) => setHasTx((r?.n ?? 0) > 0));
   }, [ctx, s]);
 
   if (!s) return null;
-  const symbol = getCurrency(s.currency).symbol;
-  const incomeMinor = income ? parseAmount(income, s.currency) : 0;
-  const savingsMinor = savings ? parseAmount(savings, s.currency) : 0;
-
-  const saveMoney = () => {
-    if (incomeMinor == null || incomeMinor < 0 || savingsMinor == null || savingsMinor < 0) return;
-    update.mutate({ monthlyIncomeMinor: incomeMinor, savingsTargetMinor: savingsMinor });
-    showSnackbar({ text: t('settings.saved') });
-  };
 
   const deleteEverything = () =>
     Alert.alert(t('settings.deleteAllTitle'), t('settings.deleteAllBody'), [
@@ -71,27 +54,7 @@ export function SettingsScreen() {
     <Screen edges={['bottom']} testID="settings">
       <SectionHeader title={t('settings.money')} />
       <Card>
-        <TextField
-          label={t('settings.monthlyIncome', { symbol })}
-          value={income}
-          onChangeText={setIncome}
-          onBlur={saveMoney}
-          keyboardType="decimal-pad"
-          error={incomeMinor == null ? t('errors.amountInvalid') : null}
-          testID="settings-income"
-        />
-        <TextField
-          label={t('settings.savingsTarget', { symbol })}
-          value={savings}
-          onChangeText={setSavings}
-          onBlur={saveMoney}
-          keyboardType="decimal-pad"
-          error={savingsMinor == null ? t('errors.amountInvalid') : null}
-        />
-        <Text variant="caption" tone="muted">
-          {t('settings.savingsTargetHint')}
-        </Text>
-        <Button kind="secondary" label={t('common.save')} onPress={saveMoney} disabled={incomeMinor == null || savingsMinor == null} testID="settings-save-money" />
+        <MoneyFields key={`${s.monthlyIncomeMinor}|${s.savingsTargetMinor}`} settings={s} />
         <Divider />
         <Text variant="caption" tone="muted">
           {t('onboarding.payDay')}
@@ -184,5 +147,49 @@ export function SettingsScreen() {
         MariKira {Constants.expoConfig?.version ?? ''}
       </Text>
     </Screen>
+  );
+}
+
+/** Income & savings inputs; remounted (via key) whenever the saved values change. */
+function MoneyFields({ settings: s }: { settings: AppSettings }) {
+  const { t } = useTranslation();
+  const update = useUpdateSettings();
+  const [income, setIncome] = useState(s.monthlyIncomeMinor ? toDecimalString(s.monthlyIncomeMinor, s.currency) : '');
+  const [savings, setSavings] = useState(s.savingsTargetMinor ? toDecimalString(s.savingsTargetMinor, s.currency) : '');
+  const symbol = getCurrency(s.currency).symbol;
+  const incomeMinor = income ? parseAmount(income, s.currency) : 0;
+  const savingsMinor = savings ? parseAmount(savings, s.currency) : 0;
+  const valid = incomeMinor != null && incomeMinor >= 0 && savingsMinor != null && savingsMinor >= 0;
+
+  const saveMoney = () => {
+    if (!valid || (incomeMinor === s.monthlyIncomeMinor && savingsMinor === s.savingsTargetMinor)) return;
+    update.mutate({ monthlyIncomeMinor: incomeMinor!, savingsTargetMinor: savingsMinor! });
+    showSnackbar({ text: t('settings.saved') });
+  };
+
+  return (
+    <>
+      <TextField
+        label={t('settings.monthlyIncome', { symbol })}
+        value={income}
+        onChangeText={setIncome}
+        onBlur={saveMoney}
+        keyboardType="decimal-pad"
+        error={incomeMinor == null ? t('errors.amountInvalid') : null}
+        testID="settings-income"
+      />
+      <TextField
+        label={t('settings.savingsTarget', { symbol })}
+        value={savings}
+        onChangeText={setSavings}
+        onBlur={saveMoney}
+        keyboardType="decimal-pad"
+        error={savingsMinor == null ? t('errors.amountInvalid') : null}
+      />
+      <Text variant="caption" tone="muted">
+        {t('settings.savingsTargetHint')}
+      </Text>
+      <Button kind="secondary" label={t('common.save')} onPress={saveMoney} disabled={!valid} testID="settings-save-money" />
+    </>
   );
 }
